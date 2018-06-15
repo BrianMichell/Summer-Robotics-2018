@@ -4,7 +4,7 @@ import ROI
 import time
 
 cap = cv.VideoCapture(0)
-ball = cv.imread('ball4.png')
+ball = cv.imread('ball4.png')  # This image is 50 x 50 pixels
 ball = cv.cvtColor(ball, cv.COLOR_BGR2GRAY)
 
 lowLight = True
@@ -91,6 +91,7 @@ while True:
     
     gs = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     itemsOfInterest = np.zeros(gs.shape, np.uint8)
+    individuals = []
     # itemsOfInterest = np.zeros((480,640))
     # itemsOfInterest[0:480, 0:640] = gs[0:480, 0:640]
     for elem in region:
@@ -110,8 +111,15 @@ while True:
             x_max = min(480, x_max)
             
             interest = gs[y_min:y_max, x_min:x_max]
+            tmp = np.zeros((50, 50), np.uint8)
+            try:
+                individuals.append(cv.resize(interest, (50, 50)))
+            except:
+                # This sometimes generates an Assertion failed error
+                # Error in ssize.width > 0 && ssize.height > 0)
+                pass
             itemsOfInterest[y_min:y_max, x_min:x_max] = interest
-            #cv.rectangle(itemsOfInterest, corner1, corner2, elem.color, 2)
+            # cv.rectangle(itemsOfInterest, corner1, corner2, elem.color, 2)
             
             # flag = True
             
@@ -122,11 +130,12 @@ while True:
         tracker.append(elem.cx)
         tracker.append(elem.cy)
     
-    matches = cv.matchTemplate(itemsOfInterest, ball, cv.TM_CCOEFF_NORMED)
-    balls = np.where(matches >= 0.7)
-    
-    for pt in zip(*balls[::-1]):
-        cv.circle(frame, (pt[0], pt[1]), 20, (255,255,255), -1)
+    for item in individuals:
+        matches = cv.matchTemplate(item, ball, cv.TM_CCOEFF_NORMED)
+        balls = np.where(matches >= 0.7)
+        
+        for pt in zip(*balls[::-1]):
+            cv.circle(frame, (pt[0], pt[1]), 20, (255, 255, 255), -1)
     
     '''    
     length = len(tracker)
@@ -147,7 +156,7 @@ while True:
     cv.imshow('edges', edges)
     cv.imshow('HSV masked', cv.bitwise_and(hsv, hsv, mask=mask))
     
-    print('Frametime is {:.4} milliseconds'.format((time.time() - lastTime) * 1000))
+    # print('Frametime is {:.4} milliseconds'.format((time.time() - lastTime) * 1000))
     lastTime = time.time()
     
     k = cv.waitKey(5) & 0xFF
