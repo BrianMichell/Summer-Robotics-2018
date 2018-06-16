@@ -1,3 +1,4 @@
+import cv2 as cv
 import numpy as np
 
 class Region:
@@ -52,4 +53,12 @@ class Region:
     def getPoints(self):
         return (self.x,self.y) , (self.x+self.w, self.y+self.h)
     
-
+    """
+    This function will sometimes catch an Assertion failed error.
+    If this happens the function will return an 'image' of all black pixels
+    """
+    def getResized(self):
+        try:
+            return cv.resize(self.image, (50,50))
+        except:
+            return np.zeros((50,50), np.uint8)
