@@ -3,6 +3,14 @@ import numpy as np
 import ROI
 import time
 
+def normPoints(x, y, w, h, xHeight, yHeight, buffer = 5):
+    xMin = max(0, x - buffer)
+    xMax = min(xHeight, x + w + buffer)
+    yMin = max(0, y - buffer)
+    yMax = min(yHeight, y + h + buffer)
+    
+    return xMin, xMax, yMin, yMax
+
 cap = cv.VideoCapture(0)
 ball = cv.imread('ball4.png')  # This image is 50 x 50 pixels
 ball = cv.cvtColor(ball, cv.COLOR_BGR2GRAY)
@@ -70,15 +78,7 @@ while True:
         
         x, y, w, h = cv.boundingRect(cnt)
         
-        xMin = x-5
-        xMax = x+w+5
-        yMin = y-5
-        yMax = y+h+5
-        
-        xMin = max(0, xMin)
-        yMin = max(0, yMax)
-        xMax = min(480, xMax)
-        yMax = min(640, yMax)
+        xMin, xMax, yMin, yMax = normPoints(x, y , w, h, 480, 640)
         
         item = gs[yMin:yMax, xMin:xMax]
         region.append(ROI.Region(x, y, h, w, item))
@@ -113,24 +113,9 @@ while True:
         cv.putText(frame, 'Width: {}, Height: {}'.format(elem.w, elem.h), corner1, FONT, 1, elem.color, 1, AA)
         
         if(not flag):
-            y_min = corner1[1] - 5
-            y_min = max(0, y_min)
-            y_max = corner2[1] + 5
-            y_max = min(640, y_max)
-            x_min = corner1[0] - 5
-            x_min = max(0, x_min)
-            x_max = corner2[0] + 5
-            x_max = min(480, x_max)
-            
-            interest = gs[y_min:y_max, x_min:x_max]
-            tmp = np.zeros((50, 50), np.uint8)
-            try:
-                individuals.append(cv.resize(interest, (50, 50)))
-            except:
-                # This sometimes generates an Assertion failed error
-                # Error in ssize.width > 0 && ssize.height > 0)
-                pass
-            itemsOfInterest[y_min:y_max, x_min:x_max] = interest
+            individuals.append(elem.getResized())
+            xMin, xMax, yMin, yMax = normPoints(elem.x, elem.y, elem.w, elem.h, 480,640)
+            itemsOfInterest[yMin:yMax, xMin:xMax] = elem.image
             # cv.rectangle(itemsOfInterest, corner1, corner2, elem.color, 2)
             
             # flag = True
@@ -148,7 +133,6 @@ while True:
         
         for pt in zip(*balls[::-1]):
             cv.circle(frame, (pt[0], pt[1]), 20, (255, 255, 255), -1)
-    
     '''    
     length = len(tracker)
     for i in range(0, length, 2):
@@ -185,3 +169,4 @@ while True:
     
 cv.destroyAllWindows()
 cap.release()
+    
