@@ -34,6 +34,7 @@ lastTime = time.time()
 
 while True:
     _, frame = cap.read()
+    gs = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     # frame = cv.bilateralFilter(frame, 20, 25, 75)
     hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
     
@@ -68,7 +69,19 @@ while True:
         moment = cv.moments(cnt)
         
         x, y, w, h = cv.boundingRect(cnt)
-        region.append(ROI.Region(x, y, h, w))
+        
+        xMin = x-5
+        xMax = x+w+5
+        yMin = y-5
+        yMax = y+h+5
+        
+        xMin = max(0, xMin)
+        yMin = max(0, yMax)
+        xMax = min(480, xMax)
+        yMax = min(640, yMax)
+        
+        item = gs[yMin:yMax, xMin:xMax]
+        region.append(ROI.Region(x, y, h, w, item))
         
         size = len(region)
         prev = 0
@@ -89,7 +102,6 @@ while True:
     
     flag = False
     
-    gs = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     itemsOfInterest = np.zeros(gs.shape, np.uint8)
     individuals = []
     # itemsOfInterest = np.zeros((480,640))

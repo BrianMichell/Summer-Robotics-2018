@@ -1,3 +1,5 @@
+import numpy as np
+
 class Region:
     
     x = 0
@@ -7,15 +9,19 @@ class Region:
     cx = 0
     cy = 0
     
+    image = np.zeros((1,1), np.uint8)
+    
     color=(0,0,255)
     
-    def __init__(self,x,y,h,w):
+    def __init__(self,x,y,h,w, image):
         self.x = x
         self.y = y
         self.w = w
         self.h = h
         self.cx = 0
         self.cy = 0
+        
+        self.image = image
 
     def update(self, x, y, h, w):
         self.x = x
